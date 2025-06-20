@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI管理ダッシュボード</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+        
+        .month-year-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .month-year-selector select {
+            padding: 10px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            padding: 12px 28px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #64748b;
+        }
+        
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .tab-button:hover:not(.active) {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        
+        .week-selector {
+            display: none;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .week-selector.show {
+            display: flex;
+        }
+        
+        #week-tabs {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        
+        .week-tab {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-align: center;
+            min-width: 100px;
+        }
+        
+        .week-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .week-tab:hover:not(.active) {
+            background: #f1f5f9;
+        }
+        
+        .week-date-range {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+        
+        
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .kpi-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .kpi-content {
+            display: grid;
+            grid-template-columns: 320px 280px 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .kpi-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .kpi-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+        
+        .kpi-details {
+            flex: 1;
+        }
+        
+        .kpi-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .kpi-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .kpi-metrics {
+            display: flex;
+            gap: 60px;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        
+        .metric-item {
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .metric-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1;
+        }
+        
+        .metric-diff {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        
+        .metric-diff.positive {
+            color: #22c55e;
+        }
+        
+        .metric-diff.negative {
+            color: #ef4444;
+        }
+        
+        .progress-achievement {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .progress-container {
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #22c55e;
+            border-radius: 100px;
+            transition: width 0.6s ease;
+        }
+        
+        .progress-fill.medium {
+            background: #f59e0b;
+        }
+        
+        .progress-fill.low {
+            background: #ef4444;
+        }
+        
+        .achievement-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            min-width: 140px;
+        }
+        
+        .achievement-rate {
+            font-size: 1.75rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .achievement-rate.high {
+            color: #22c55e;
+        }
+        
+        .achievement-rate.medium {
+            color: #f59e0b;
+        }
+        
+        .achievement-rate.low {
+            color: #ef4444;
+        }
+        
+        .conversion-rate {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #f3f4f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+        
+        .conversion-rate-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .conversion-rate-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #7c3aed;
+        }
+        
+        @media (max-width: 1400px) {
+            .kpi-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .kpi-content {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .kpi-metrics {
+                justify-content: center;
+            }
+            
+            .progress-achievement {
+                justify-content: center;
+                flex-direction: column;
+            }
+            
+            .progress-container {
+                width: 100%;
+            }
+            
+            .achievement-info {
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>KPI管理ダッシュボード</h1>
+            
+            <div class="month-year-selector">
+                <select id="year-selector" onchange="changeMonth()">
+                </select>
+                <select id="month-selector" onchange="changeMonth()">
+                    <option value="0">1月</option>
+                    <option value="1">2月</option>
+                    <option value="2">3月</option>
+                    <option value="3">4月</option>
+                    <option value="4">5月</option>
+                    <option value="5">6月</option>
+                    <option value="6">7月</option>
+                    <option value="7">8月</option>
+                    <option value="8">9月</option>
+                    <option value="9">10月</option>
+                    <option value="10">11月</option>
+                    <option value="11">12月</option>
+                </select>
+            </div>
+            
+            <div class="controls">
+                <div class="tab-button active" onclick="switchView('monthly')">月間表示</div>
+                <div class="tab-button" onclick="switchView('weekly')">週間表示</div>
+            </div>
+            
+            <!-- 週選択UI -->
+            <div class="week-selector" id="week-selector">
+                <div id="week-tabs"></div>
+            </div>
+        </div>
+        
+        <!-- KPIカード（縦並び） -->
+        <div class="kpi-container">
+            <!-- 投稿数（最初に移動） -->
+            <div class="kpi-card">
+                <div class="kpi-content">
+                    <div class="kpi-info">
+                        <div class="kpi-icon" style="background: #ede9fe;">📝</div>
+                        <div class="kpi-details">
+                            <div class="kpi-title">投稿数</div>
+                            <div class="kpi-subtitle">TikTokへの投稿総数</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">目標</div>
+                            <div class="metric-value" id="posts-goal">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">結果</div>
+                            <div class="metric-value" id="posts-result">0</div>
+                            <div class="metric-diff" id="posts-diff">+0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-achievement">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="posts-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-info">
+                            <span class="achievement-rate" id="posts-achievement">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 再生数 -->
+            <div class="kpi-card">
+                <div class="kpi-content">
+                    <div class="kpi-info">
+                        <div class="kpi-icon" style="background: #f3f4f6;">📺</div>
+                        <div class="kpi-details">
+                            <div class="kpi-title">再生数</div>
+                            <div class="kpi-subtitle">動画の総再生回数</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">目標</div>
+                            <div class="metric-value" id="play-goal">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">結果</div>
+                            <div class="metric-value" id="play-result">0</div>
+                            <div class="metric-diff" id="play-diff">+0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-achievement">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="play-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-info">
+                            <span class="achievement-rate" id="play-achievement">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- プロフ遷移数 -->
+            <div class="kpi-card">
+                <div class="kpi-content">
+                    <div class="kpi-info">
+                        <div class="kpi-icon" style="background: #fef3c7;">👤</div>
+                        <div class="kpi-details">
+                            <div class="kpi-title">プロフ遷移数</div>
+                            <div class="kpi-subtitle">プロフィールページへの遷移</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">目標</div>
+                            <div class="metric-value" id="profile-transition-goal">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">結果</div>
+                            <div class="metric-value" id="profile-transition-result">0</div>
+                            <div class="metric-diff" id="profile-transition-diff">+0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-achievement">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="profile-transition-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-info">
+                            <span class="achievement-rate" id="profile-transition-achievement">0%</span>
+                            <div class="conversion-rate">
+                                <span class="conversion-rate-label">再生からの遷移率:</span>
+                                <span class="conversion-rate-value" id="profile-transition-conversion">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LPクリック数 -->
+            <div class="kpi-card">
+                <div class="kpi-content">
+                    <div class="kpi-info">
+                        <div class="kpi-icon" style="background: #dbeafe;">🔗</div>
+                        <div class="kpi-details">
+                            <div class="kpi-title">LPクリック数</div>
+                            <div class="kpi-subtitle">ランディングページへのクリック</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">目標</div>
+                            <div class="metric-value" id="lp-click-goal">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">結果</div>
+                            <div class="metric-value" id="lp-click-result">0</div>
+                            <div class="metric-diff" id="lp-click-diff">+0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-achievement">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="lp-click-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-info">
+                            <span class="achievement-rate" id="lp-click-achievement">0%</span>
+                            <div class="conversion-rate">
+                                <span class="conversion-rate-label">プロフからのクリック率:</span>
+                                <span class="conversion-rate-value" id="lp-click-conversion">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LINE登録数 -->
+            <div class="kpi-card">
+                <div class="kpi-content">
+                    <div class="kpi-info">
+                        <div class="kpi-icon" style="background: #d1fae5;">💬</div>
+                        <div class="kpi-details">
+                            <div class="kpi-title">LINE登録数</div>
+                            <div class="kpi-subtitle">LINE公式アカウントへの登録</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">目標</div>
+                            <div class="metric-value" id="line-goal">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">結果</div>
+                            <div class="metric-value" id="line-result">0</div>
+                            <div class="metric-diff" id="line-diff">+0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-achievement">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="line-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-info">
+                            <span class="achievement-rate" id="line-achievement">0%</span>
+                            <div class="conversion-rate">
+                                <span class="conversion-rate-label">LPからの登録率:</span>
+                                <span class="conversion-rate-value" id="line-conversion">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 面談予約数 -->
+            <div class="kpi-card">
+                <div class="kpi-content">
+                    <div class="kpi-info">
+                        <div class="kpi-icon" style="background: #fed7aa;">📅</div>
+                        <div class="kpi-details">
+                            <div class="kpi-title">面談予約数</div>
+                            <div class="kpi-subtitle">面談の予約件数</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">目標</div>
+                            <div class="metric-value" id="reservation-goal">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">結果</div>
+                            <div class="metric-value" id="reservation-result">0</div>
+                            <div class="metric-diff" id="reservation-diff">+0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-achievement">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="reservation-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-info">
+                            <span class="achievement-rate" id="reservation-achievement">0%</span>
+                            <div class="conversion-rate">
+                                <span class="conversion-rate-label">LINE登録からの予約率:</span>
+                                <span class="conversion-rate-value" id="reservation-conversion">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 面談着席数 -->
+            <div class="kpi-card">
+                <div class="kpi-content">
+                    <div class="kpi-info">
+                        <div class="kpi-icon" style="background: #e0e7ff;">🪑</div>
+                        <div class="kpi-details">
+                            <div class="kpi-title">面談着席数</div>
+                            <div class="kpi-subtitle">実際に面談を実施した件数</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">目標</div>
+                            <div class="metric-value" id="seated-goal">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">結果</div>
+                            <div class="metric-value" id="seated-result">0</div>
+                            <div class="metric-diff" id="seated-diff">+0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-achievement">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="seated-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-info">
+                            <span class="achievement-rate" id="seated-achievement">0%</span>
+                            <div class="conversion-rate">
+                                <span class="conversion-rate-label">面談予約からの着席率:</span>
+                                <span class="conversion-rate-value" id="seated-conversion">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 有効アポ数 -->
+            <div class="kpi-card">
+                <div class="kpi-content">
+                    <div class="kpi-info">
+                        <div class="kpi-icon" style="background: #ccfbf1;">✅</div>
+                        <div class="kpi-details">
+                            <div class="kpi-title">有効アポ数</div>
+                            <div class="kpi-subtitle">有効なアポイント件数</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">目標</div>
+                            <div class="metric-value" id="valid-goal">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">結果</div>
+                            <div class="metric-value" id="valid-result">0</div>
+                            <div class="metric-diff" id="valid-diff">+0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-achievement">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="valid-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="achievement-info">
+                            <span class="achievement-rate" id="valid-achievement">0%</span>
+                            <div class="conversion-rate">
+                                <span class="conversion-rate-label">面談着席からの有効アポ率:</span>
+                                <span class="conversion-rate-value" id="valid-conversion">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // データ構造
+        let data = {};
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+        let currentView = 'monthly';
+        let currentWeek = 1;
+
+        // 初期化
+        function initializeApp() {
+            initializeYearSelector();
+            updateMonthSelector();
+            generateWeekTabs();
+            // 親ウィンドウからのデータ待ち
+        }
+
+        // 年選択の初期化
+        function initializeYearSelector() {
+            const yearSelector = document.getElementById('year-selector');
+            
+            for (let year = 2025; year <= 2028; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = `${year}年`;
+                if (year === currentYear) {
+                    option.selected = true;
+                }
+                yearSelector.appendChild(option);
+            }
+        }
+
+        // 月選択の更新
+        function updateMonthSelector() {
+            const monthSelector = document.getElementById('month-selector');
+            monthSelector.value = currentMonth;
+        }
+
+        // 月の変更
+        function changeMonth() {
+            currentYear = parseInt(document.getElementById('year-selector').value);
+            currentMonth = parseInt(document.getElementById('month-selector').value);
+            
+            generateWeekTabs();
+            updateDisplay();
+        }
+
+        // 週タブの生成
+        function generateWeekTabs() {
+            const weekTabsContainer = document.getElementById('week-tabs');
+            weekTabsContainer.innerHTML = '';
+            
+            const year = currentYear;
+            const month = currentMonth;
+            
+            // 月の最初の日と最後の日を取得
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            // 最初の月曜日を探す
+            let currentDate = new Date(firstDay);
+            const firstDayOfWeek = firstDay.getDay();
+            
+            // 月の1日が月曜日でない場合、その週は第1週として扱う（1日だけでも）
+            if (firstDayOfWeek !== 1) {
+                // 第1週の終了日を計算（次の日曜日まで）
+                const daysUntilSunday = firstDayOfWeek === 0 ? 0 : 7 - firstDayOfWeek;
+                const firstWeekEnd = new Date(year, month, 1 + daysUntilSunday);
+                
+                // 第1週のタブを作成
+                const weekTab = document.createElement('div');
+                weekTab.className = currentWeek === 1 ? 'week-tab active' : 'week-tab';
+                weekTab.onclick = () => selectWeek(1);
+                
+                const weekLabel = document.createElement('div');
+                weekLabel.textContent = '第1週';
+                
+                const dateRange = document.createElement('div');
+                dateRange.className = 'week-date-range';
+                dateRange.textContent = `${month + 1}/1 - ${month + 1}/${firstWeekEnd.getDate()}`;
+                
+                weekTab.appendChild(weekLabel);
+                weekTab.appendChild(dateRange);
+                weekTabsContainer.appendChild(weekTab);
+                
+                // 次の週の開始日（翌月曜日）を設定
+                currentDate = new Date(year, month, 1 + daysUntilSunday + 1);
+            }
+            
+            // 残りの週を生成
+            for (let week = firstDayOfWeek === 1 ? 1 : 2; week <= 5; week++) {
+                if (currentDate > lastDay) break;
+                
+                const weekTab = document.createElement('div');
+                weekTab.className = week === currentWeek ? 'week-tab active' : 'week-tab';
+                weekTab.onclick = () => selectWeek(week);
+                
+                const weekStart = new Date(currentDate);
+                let weekEnd = new Date(currentDate);
+                
+                if (week === 5) {
+                    // 第5週は月末まで
+                    weekEnd = new Date(lastDay);
+                } else {
+                    weekEnd.setDate(weekEnd.getDate() + 6);
+                    // 月末を超えないように調整
+                    if (weekEnd > lastDay) {
+                        weekEnd = new Date(lastDay);
+                    }
+                }
+                
+                const weekLabel = document.createElement('div');
+                weekLabel.textContent = `第${week}週`;
+                
+                const dateRange = document.createElement('div');
+                dateRange.className = 'week-date-range';
+                dateRange.textContent = `${month + 1}/${weekStart.getDate()} - ${month + 1}/${weekEnd.getDate()}`;
+                
+                weekTab.appendChild(weekLabel);
+                weekTab.appendChild(dateRange);
+                weekTabsContainer.appendChild(weekTab);
+                
+                // 次の週の開始日を設定
+                currentDate.setDate(currentDate.getDate() + 7);
+            }
+        }
+
+        // ビューの切り替え
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 週選択UIの表示/非表示
+            const weekSelector = document.getElementById('week-selector');
+            if (view === 'weekly') {
+                weekSelector.classList.add('show');
+            } else {
+                weekSelector.classList.remove('show');
+            }
+            
+            updateDisplay();
+        }
+
+        // 週の選択
+        function selectWeek(week) {
+            currentWeek = week;
+            document.querySelectorAll('.week-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            updateDisplay();
+        }
+
+        // 達成率の計算
+        function calculateAchievementRate(goal, result) {
+            if (goal === 0) return 0;
+            return ((result / goal) * 100).toFixed(1);
+        }
+
+        // プログレスバーのクラスを取得
+        function getProgressClass(rate) {
+            const numRate = parseFloat(rate);
+            if (numRate >= 100) return '';
+            if (numRate >= 80) return 'medium';
+            return 'low';
+        }
+
+        // 達成率のクラスを取得
+        function getRateClass(rate) {
+            const numRate = parseFloat(rate);
+            if (numRate >= 100) return 'high';
+            if (numRate >= 80) return 'medium';
+            return 'low';
+        }
+
+        // 差分のフォーマット
+        function formatDiff(goal, result) {
+            const diff = result - goal;
+            return diff >= 0 ? `+${diff.toLocaleString()}` : diff.toLocaleString();
+        }
+
+        // 月間結果の計算
+        function calculateMonthlyResult() {
+            const yearKey = currentYear.toString();
+            const monthKey = currentMonth.toString();
+            const monthData = data[yearKey] && data[yearKey][monthKey];
+            
+            if (!monthData) return;
+            
+            const metrics = ['play', 'profileTransition', 'lpClick', 'line', 'reservation', 'seated', 'valid', 'posts'];
+            
+            metrics.forEach(metric => {
+                let total = 0;
+                for (let i = 1; i <= 5; i++) {
+                    if (monthData.weekly[`week${i}`]) {
+                        total += monthData.weekly[`week${i}`][metric].result || 0;
+                    }
+                }
+                monthData.monthly[metric].result = total;
+            });
+        }
+
+        // 表示の更新
+        function updateDisplay() {
+            const yearKey = currentYear.toString();
+            const monthKey = currentMonth.toString();
+            const monthData = data[yearKey] && data[yearKey][monthKey];
+            
+            if (!monthData) {
+                // データがない場合は0を表示
+                const metrics = ['play', 'profileTransition', 'lpClick', 'line', 'reservation', 'seated', 'valid', 'posts'];
+                metrics.forEach(metric => {
+                    const goalElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-goal`);
+                    const resultElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-result`);
+                    const diffElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-diff`);
+                    const progressElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-progress`);
+                    const achievementElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-achievement`);
+                    
+                    if (goalElement) goalElement.textContent = '0';
+                    if (resultElement) resultElement.textContent = '0';
+                    if (diffElement) {
+                        diffElement.textContent = '+0';
+                        diffElement.className = 'metric-diff';
+                    }
+                    if (progressElement) {
+                        progressElement.style.width = '0%';
+                        progressElement.className = 'progress-fill low';
+                    }
+                    if (achievementElement) {
+                        achievementElement.textContent = '0%';
+                        achievementElement.className = 'achievement-rate low';
+                    }
+                });
+                return;
+            }
+            
+            let displayData;
+            
+            if (currentView === 'monthly') {
+                calculateMonthlyResult();
+                displayData = monthData.monthly;
+            } else {
+                // 週間表示の場合、週のデータと月間目標を週数で割った値を使用
+                displayData = {};
+                const metrics = ['play', 'profileTransition', 'lpClick', 'line', 'reservation', 'seated', 'valid', 'posts'];
+                
+                metrics.forEach(metric => {
+                    displayData[metric] = {
+                        goal: Math.round(monthData.monthly[metric].goal / 5), // 5週で割る
+                        result: (monthData.weekly[`week${currentWeek}`] && monthData.weekly[`week${currentWeek}`][metric]) 
+                               ? monthData.weekly[`week${currentWeek}`][metric].result : 0
+                    };
+                });
+            }
+            
+            // 各指標を更新
+            const metrics = ['play', 'profileTransition', 'lpClick', 'line', 'reservation', 'seated', 'valid', 'posts'];
+            
+            metrics.forEach(metric => {
+                const metricData = displayData[metric];
+                const goal = metricData.goal;
+                const result = metricData.result;
+                const achievement = calculateAchievementRate(goal, result);
+                
+                const goalElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-goal`);
+                const resultElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-result`);
+                const diffElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-diff`);
+                const progressElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-progress`);
+                const achievementElement = document.getElementById(`${metric.replace(/([A-Z])/g, '-$1').toLowerCase()}-achievement`);
+                
+                if (goalElement) {
+                    goalElement.textContent = goal.toLocaleString();
+                }
+                if (resultElement) {
+                    resultElement.textContent = result.toLocaleString();
+                }
+                if (diffElement) {
+                    const diff = result - goal;
+                    diffElement.textContent = formatDiff(goal, result);
+                    diffElement.className = diff >= 0 ? 'metric-diff positive' : 'metric-diff negative';
+                }
+                if (progressElement) {
+                    progressElement.style.width = Math.min(parseFloat(achievement), 100) + '%';
+                    progressElement.className = 'progress-fill ' + getProgressClass(achievement);
+                }
+                if (achievementElement) {
+                    achievementElement.textContent = achievement + '%';
+                    achievementElement.className = 'achievement-rate ' + getRateClass(achievement);
+                }
+            });
+            
+            // コンバージョン率を計算
+            updateConversionRates(displayData);
+        }
+
+        // コンバージョン率の更新
+        function updateConversionRates(viewData) {
+            // プロフ遷移率
+            const profileTransitionRate = viewData.play.result > 0 ? 
+                ((viewData.profileTransition.result / viewData.play.result) * 100).toFixed(1) : 0;
+            document.getElementById('profile-transition-conversion').textContent = profileTransitionRate + '%';
+            
+            // LPクリック率
+            const lpClickRate = viewData.profileTransition.result > 0 ? 
+                ((viewData.lpClick.result / viewData.profileTransition.result) * 100).toFixed(1) : 0;
+            document.getElementById('lp-click-conversion').textContent = lpClickRate + '%';
+            
+            // LINE登録率
+            const lineRate = viewData.lpClick.result > 0 ? 
+                ((viewData.line.result / viewData.lpClick.result) * 100).toFixed(1) : 0;
+            document.getElementById('line-conversion').textContent = lineRate + '%';
+            
+            // 予約率
+            const reservationRate = viewData.line.result > 0 ? 
+                ((viewData.reservation.result / viewData.line.result) * 100).toFixed(1) : 0;
+            document.getElementById('reservation-conversion').textContent = reservationRate + '%';
+            
+            // 着席率
+            const seatedRate = viewData.reservation.result > 0 ? 
+                ((viewData.seated.result / viewData.reservation.result) * 100).toFixed(1) : 0;
+            document.getElementById('seated-conversion').textContent = seatedRate + '%';
+            
+            // 有効率
+            const validRate = viewData.seated.result > 0 ? 
+                ((viewData.valid.result / viewData.seated.result) * 100).toFixed(1) : 0;
+            document.getElementById('valid-conversion').textContent = validRate + '%';
+        }
+
+        // アプリケーションの初期化
+        initializeApp();
+        
+        // 親ウィンドウからのメッセージを受信
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'updateData') {
+                data = event.data.data;
+                updateDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
