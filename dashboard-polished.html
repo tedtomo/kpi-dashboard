@@ -306,6 +306,12 @@
             background: #f3f4f6;
             border-radius: 10px;
             display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .conversion-rate-row {
+            display: flex;
             align-items: center;
             gap: 10px;
             white-space: nowrap;
@@ -495,8 +501,14 @@
                         <div class="achievement-info">
                             <span class="achievement-rate" id="profile-transition-achievement">0%</span>
                             <div class="conversion-rate">
-                                <span class="conversion-rate-label">再生からの遷移率:</span>
-                                <span class="conversion-rate-value" id="profile-transition-conversion">0%</span>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">再生からの遷移率:</span>
+                                    <span class="conversion-rate-value" id="profile-transition-conversion">0%</span>
+                                </div>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">目標遷移率:</span>
+                                    <span class="conversion-rate-value" style="color: #6b7280;" id="profile-transition-target">0%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -535,8 +547,14 @@
                         <div class="achievement-info">
                             <span class="achievement-rate" id="lp-click-achievement">0%</span>
                             <div class="conversion-rate">
-                                <span class="conversion-rate-label">プロフからのクリック率:</span>
-                                <span class="conversion-rate-value" id="lp-click-conversion">0%</span>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">プロフからのクリック率:</span>
+                                    <span class="conversion-rate-value" id="lp-click-conversion">0%</span>
+                                </div>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">目標クリック率:</span>
+                                    <span class="conversion-rate-value" style="color: #6b7280;" id="lp-click-target">0%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -575,8 +593,14 @@
                         <div class="achievement-info">
                             <span class="achievement-rate" id="line-achievement">0%</span>
                             <div class="conversion-rate">
-                                <span class="conversion-rate-label">LPからの登録率:</span>
-                                <span class="conversion-rate-value" id="line-conversion">0%</span>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">LPからの登録率:</span>
+                                    <span class="conversion-rate-value" id="line-conversion">0%</span>
+                                </div>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">目標登録率:</span>
+                                    <span class="conversion-rate-value" style="color: #6b7280;" id="line-target">0%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -615,8 +639,14 @@
                         <div class="achievement-info">
                             <span class="achievement-rate" id="reservation-achievement">0%</span>
                             <div class="conversion-rate">
-                                <span class="conversion-rate-label">LINE登録からの予約率:</span>
-                                <span class="conversion-rate-value" id="reservation-conversion">0%</span>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">LINE登録からの予約率:</span>
+                                    <span class="conversion-rate-value" id="reservation-conversion">0%</span>
+                                </div>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">目標予約率:</span>
+                                    <span class="conversion-rate-value" style="color: #6b7280;" id="reservation-target">0%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -655,8 +685,14 @@
                         <div class="achievement-info">
                             <span class="achievement-rate" id="seated-achievement">0%</span>
                             <div class="conversion-rate">
-                                <span class="conversion-rate-label">面談予約からの着席率:</span>
-                                <span class="conversion-rate-value" id="seated-conversion">0%</span>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">面談予約からの着席率:</span>
+                                    <span class="conversion-rate-value" id="seated-conversion">0%</span>
+                                </div>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">目標着席率:</span>
+                                    <span class="conversion-rate-value" style="color: #6b7280;" id="seated-target">0%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -695,8 +731,14 @@
                         <div class="achievement-info">
                             <span class="achievement-rate" id="valid-achievement">0%</span>
                             <div class="conversion-rate">
-                                <span class="conversion-rate-label">面談着席からの有効アポ率:</span>
-                                <span class="conversion-rate-value" id="valid-conversion">0%</span>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">面談着席からの有効アポ率:</span>
+                                    <span class="conversion-rate-value" id="valid-conversion">0%</span>
+                                </div>
+                                <div class="conversion-rate-row">
+                                    <span class="conversion-rate-label">目標有効アポ率:</span>
+                                    <span class="conversion-rate-value" style="color: #6b7280;" id="valid-target">0%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1010,31 +1052,49 @@
             const profileTransitionRate = viewData.play.result > 0 ? 
                 ((viewData.profileTransition.result / viewData.play.result) * 100).toFixed(1) : 0;
             document.getElementById('profile-transition-conversion').textContent = profileTransitionRate + '%';
+            const profileTransitionTarget = viewData.play.goal > 0 ? 
+                ((viewData.profileTransition.goal / viewData.play.goal) * 100).toFixed(1) : 0;
+            document.getElementById('profile-transition-target').textContent = profileTransitionTarget + '%';
             
             // LPクリック率
             const lpClickRate = viewData.profileTransition.result > 0 ? 
                 ((viewData.lpClick.result / viewData.profileTransition.result) * 100).toFixed(1) : 0;
             document.getElementById('lp-click-conversion').textContent = lpClickRate + '%';
+            const lpClickTarget = viewData.profileTransition.goal > 0 ? 
+                ((viewData.lpClick.goal / viewData.profileTransition.goal) * 100).toFixed(1) : 0;
+            document.getElementById('lp-click-target').textContent = lpClickTarget + '%';
             
             // LINE登録率
             const lineRate = viewData.lpClick.result > 0 ? 
                 ((viewData.line.result / viewData.lpClick.result) * 100).toFixed(1) : 0;
             document.getElementById('line-conversion').textContent = lineRate + '%';
+            const lineTarget = viewData.lpClick.goal > 0 ? 
+                ((viewData.line.goal / viewData.lpClick.goal) * 100).toFixed(1) : 0;
+            document.getElementById('line-target').textContent = lineTarget + '%';
             
             // 予約率
             const reservationRate = viewData.line.result > 0 ? 
                 ((viewData.reservation.result / viewData.line.result) * 100).toFixed(1) : 0;
             document.getElementById('reservation-conversion').textContent = reservationRate + '%';
+            const reservationTarget = viewData.line.goal > 0 ? 
+                ((viewData.reservation.goal / viewData.line.goal) * 100).toFixed(1) : 0;
+            document.getElementById('reservation-target').textContent = reservationTarget + '%';
             
             // 着席率
             const seatedRate = viewData.reservation.result > 0 ? 
                 ((viewData.seated.result / viewData.reservation.result) * 100).toFixed(1) : 0;
             document.getElementById('seated-conversion').textContent = seatedRate + '%';
+            const seatedTarget = viewData.reservation.goal > 0 ? 
+                ((viewData.seated.goal / viewData.reservation.goal) * 100).toFixed(1) : 0;
+            document.getElementById('seated-target').textContent = seatedTarget + '%';
             
             // 有効率
             const validRate = viewData.seated.result > 0 ? 
                 ((viewData.valid.result / viewData.seated.result) * 100).toFixed(1) : 0;
             document.getElementById('valid-conversion').textContent = validRate + '%';
+            const validTarget = viewData.seated.goal > 0 ? 
+                ((viewData.valid.goal / viewData.seated.goal) * 100).toFixed(1) : 0;
+            document.getElementById('valid-target').textContent = validTarget + '%';
         }
 
         // アプリケーションの初期化
