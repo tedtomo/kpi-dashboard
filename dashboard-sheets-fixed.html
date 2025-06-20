@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI管理ダッシュボード</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .sheet-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 15px;
+            padding: 6px 12px;
+            background: #f8fafc;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .sheet-link:hover {
+            background: #e2e8f0;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>KPI管理ダッシュボード</h1>
+            <a href="https://docs.google.com/spreadsheets/d/1iPKLiUZy_4wvE1wiRdZCPD-8PW7oiGex_qK-VE4x6WU/edit" target="_blank" class="sheet-link">
+                📊 スプレッドシートで編集
+            </a>
+        </div>
+
+        <iframe id="dashboard-frame" src="dashboard-polished.html" style="width: 100%; height: 900px; border: none; border-radius: 10px; box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);"></iframe>
+    </div>
+
+    <script>
+        // Google Apps Script API URL
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxf6a7Etmj0HvA7vPE8vE78sjOQBSyFsW5AwHzsiyTEhQT0NCYEQmJMfQgNKjI2e2Hf/exec';
+
+        // JSONPコールバック用の関数をグローバルに定義
+        window.handleGASResponse = function(data) {
+            // iframeのlocalStorageにデータを保存
+            const iframe = document.getElementById('dashboard-frame');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'updateData',
+                    data: data
+                }, '*');
+            }
+        };
+
+        // データを取得（JSONP方式）
+        function fetchData() {
+            // 古いスクリプトタグがあれば削除
+            const oldScript = document.getElementById('gas-jsonp');
+            if (oldScript) {
+                oldScript.remove();
+            }
+            
+            // 新しいスクリプトタグを作成
+            const script = document.createElement('script');
+            script.id = 'gas-jsonp';
+            script.src = GAS_API_URL + '?callback=handleGASResponse';
+            document.body.appendChild(script);
+        }
+
+        // 自動同期を開始
+        function startAutoSync() {
+            // iframeが読み込まれたら初回同期
+            const iframe = document.getElementById('dashboard-frame');
+            iframe.onload = function() {
+                fetchData();
+                
+                // 30秒ごとに同期
+                setInterval(fetchData, 30000);
+            };
+        }
+
+        // 初期化
+        startAutoSync();
+    </script>
+</body>
+</html>
